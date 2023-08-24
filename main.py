@@ -62,13 +62,12 @@ button = QtWidgets.QPushButton("播放", window)
 button.move(300, 150)
 button.clicked.connect(play_audio)
 
-# 绑定空格键和播放音频函数
-window.keyPressEvent = lambda event: play_audio() if event.key() == QtCore.Qt.Key_Space else None
+# 创建一个快捷方式对象，用于绑定空格键和播放音频函数
+shortcut = QtWidgets.QShortcut(QtGui.QKeySequence(QtCore.Qt.Key_Space), window)
+shortcut.activated.connect(play_audio)
 
 # 显示窗口
 window.show()
-
-select_folder()
 
 # 进入主循环
 sys.exit(app.exec_())
