@@ -156,7 +156,7 @@ shortcut.activated.connect(play_audio)
 
 # 创建一个文本框对象，用于显示和编辑文本文件
 textbox = QtWidgets.QTextEdit(window)
-textbox.move(0, 200)
+textbox.move(0, 220)
 textbox.resize(400, 100)
 # 重写文本框的键盘事件处理函数，用于处理上下键事件
 textbox.keyPressEvent = handle_key
