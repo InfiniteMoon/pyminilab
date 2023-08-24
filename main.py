@@ -4,7 +4,6 @@ import sys
 from PyQt5 import QtCore, QtGui, QtWidgets, QtMultimedia
 
 # 定义一个播放音频的函数
-# 定义一个播放音频的函数
 def play_audio():
     # 获取列表框中选中的文件名
     item = listbox.currentItem()
@@ -26,6 +25,34 @@ def play_audio():
     except:
         QtWidgets.QMessageBox.critical(window, "错误", "无法播放该文件")
 
+# 定义一个显示文本的函数
+def show_text():
+    # 获取列表框中选中的文件名
+    item = listbox.currentItem()
+    # 如果没有选中任何文件，清空文本框并返回
+    if item is None:
+        textbox.clear()
+        return
+    # 否则，获取文件名
+    filename = item.text()
+    # 替换扩展名为.lab
+    filename = filename.replace(".wav", ".lab")
+    # 拼接完整的文件路径
+    filepath = os.path.join(folder, filename)
+    # 尝试打开和读取文本文件
+    try:
+        with open(filepath, "r") as f:
+            text = f.read()
+            # 如果文本为空，显示提示信息
+            if not text:
+                text = "无法显示该文件"
+            # 设置文本框的内容为文本
+            textbox.setText(text)
+    # 如果出现异常，尝试新建一个同名的空白文件，并显示提示信息
+    except:
+        with open(filepath, "w") as f:
+            text = "新建了一个空白文件"
+            textbox.setText(text)
 
 # 定义一个选择文件夹的函数
 def select_folder():
@@ -64,6 +91,8 @@ action.triggered.connect(select_folder)
 # 创建一个列表框对象，用于显示wav文件
 listbox = QtWidgets.QListWidget(window)
 listbox.move(0, menubar.height())
+# 绑定列表框的点击事件和显示文本函数
+listbox.itemClicked.connect(show_text)
 
 # 创建一个按钮对象，用于播放音频
 button = QtWidgets.QPushButton("播放", window)
@@ -74,10 +103,17 @@ button.clicked.connect(play_audio)
 shortcut = QtWidgets.QShortcut(QtGui.QKeySequence(QtCore.Qt.Key_Space), window)
 shortcut.activated.connect(play_audio)
 
+# 创建一个文本框对象，用于显示文本文件
+textbox = QtWidgets.QTextEdit(window)
+textbox.move(0, 200)
+textbox.resize(400, 100)
+# 设置文本框为只读模式
+textbox.setReadOnly(True)
+
 # 显示窗口
 window.show()
 
-#让用户选择初始文件夹
+# 弹出一个对话框，让用户初始选择一个文件夹
 select_folder()
 
 # 进入主循环
