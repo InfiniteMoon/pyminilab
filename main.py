@@ -156,10 +156,17 @@ shortcut.activated.connect(play_audio)
 
 # 创建一个文本框对象，用于显示和编辑文本文件
 textbox = QtWidgets.QTextEdit(window)
-textbox.move(0, 220)
+textbox.move(0, 260)
 textbox.resize(400, 100)
 # 重写文本框的键盘事件处理函数，用于处理上下键事件
 textbox.keyPressEvent = handle_key
+
+# 创建一个文本框对象，用于显示和编辑文本文件
+textbox2 = QtWidgets.QTextEdit(window)
+textbox2.move(0, 220)
+textbox2.resize(400, 40)
+# 重写文本框的键盘事件处理函数，用于处理上下键事件
+textbox2.keyPressEvent = handle_key
 
 # 创建一个按钮对象，用于保存文本文件
 save_button = QtWidgets.QPushButton("保存", window)
@@ -176,6 +183,7 @@ current_file = ""
 # 显示窗口
 window.show()
 
+# 首次选择文件夹
 select_folder()
 
 # 进入主循环
