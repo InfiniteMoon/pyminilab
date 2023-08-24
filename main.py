@@ -4,9 +4,16 @@ import sys
 from PyQt5 import QtCore, QtGui, QtWidgets, QtMultimedia
 
 # 定义一个播放音频的函数
+# 定义一个播放音频的函数
 def play_audio():
     # 获取列表框中选中的文件名
-    filename = listbox.currentItem().text()
+    item = listbox.currentItem()
+    # 如果没有选中任何文件，弹出提示框并返回
+    if item is None:
+        QtWidgets.QMessageBox.warning(window, "警告", "请先选择一个文件")
+        return
+    # 否则，获取文件名
+    filename = item.text()
     # 拼接完整的文件路径
     filepath = os.path.join(folder, filename)
     # 尝试加载和播放音频文件
@@ -18,6 +25,7 @@ def play_audio():
     # 如果出现异常，弹出错误提示框
     except:
         QtWidgets.QMessageBox.critical(window, "错误", "无法播放该文件")
+
 
 # 定义一个选择文件夹的函数
 def select_folder():
@@ -68,6 +76,9 @@ shortcut.activated.connect(play_audio)
 
 # 显示窗口
 window.show()
+
+#让用户选择初始文件夹
+select_folder()
 
 # 进入主循环
 sys.exit(app.exec_())
