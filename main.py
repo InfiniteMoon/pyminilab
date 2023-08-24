@@ -27,6 +27,8 @@ def play_audio():
 
 # 定义一个显示文本的函数
 def show_text():
+    # 保存之前编辑过的内容
+    save_text()
     # 获取列表框中选中的文件名
     item = listbox.currentItem()
     # 如果没有选中任何文件，清空文本框并返回
@@ -48,10 +50,36 @@ def show_text():
                 text = ""
             # 设置文本框的内容为文本
             textbox.setText(text)
-    # 如果出现异常，尝试新建一个同名的空白文件，并清空文本框
+            # 设置当前编辑过的文件路径为filepath
+            global current_file
+            current_file = filepath
+            # 记录当前光标位置
+            global cursor_pos
+            cursor_pos = textbox.textCursor().position()
+    # 如果出现异常，尝试新建一个同名的空白文件，并清空文本框，并设置当前编辑过的文件路径为filepath，并记录当前光标位置
     except:
         with open(filepath, "w") as f:
             textbox.clear()
+            current_file = filepath
+            cursor_pos = 0
+
+# 定义一个保存文本的函数
+def save_text():
+    # 获取当前编辑过的文件路径
+    global current_file
+    if current_file:
+        # 获取文本框中的内容
+        text = textbox.toPlainText()
+        # 尝试打开和写入文本文件
+        try:
+            with open(current_file, "w") as f:
+                f.write(text)
+                # 在按钮旁边显示“已保存”的提示
+                # save_label.setText("saved")
+                # 效果不好
+        # 如果出现异常，弹出错误提示框
+        except:
+            QtWidgets.QMessageBox.critical(window, "错误", "无法保存该文件")
 
 # 定义一个选择文件夹的函数
 def select_folder():
@@ -69,6 +97,28 @@ def select_folder():
         if file.endswith(".wav"):
             listbox.addItem(file)
 
+# 定义一个处理上下键事件的函数
+def handle_key(event):
+    # 获取当前按下的键
+    key = event.key()
+    # 如果是上键，且列表框有选中的项目，且不是第一个项目，就向上移动一项，并显示文本，并保持光标位置不变
+    if key == QtCore.Qt.Key_Up and listbox.currentItem() and listbox.currentRow() > 0:
+        listbox.setCurrentRow(listbox.currentRow() - 1)
+        show_text()
+        cursor = textbox.textCursor()
+        cursor.setPosition(cursor_pos)
+        textbox.setTextCursor(cursor)
+    # 如果是下键，且列表框有选中的项目，且不是最后一个项目，就向下移动一项，并显示文本，并保持光标位置不变
+    elif key == QtCore.Qt.Key_Down and listbox.currentItem() and listbox.currentRow() < listbox.count() - 1:
+        listbox.setCurrentRow(listbox.currentRow() + 1)
+        show_text()
+        cursor = textbox.textCursor()
+        cursor.setPosition(cursor_pos)
+        textbox.setTextCursor(cursor)
+    # 否则，调用原来的事件处理函数
+    else:
+        QtWidgets.QTextEdit.keyPressEvent(textbox, event)
+
 # 创建一个PyQt应用对象
 app = QtWidgets.QApplication(sys.argv)
 
@@ -77,7 +127,7 @@ sound = QtMultimedia.QSoundEffect()
 
 # 创建一个PyQt窗口对象
 window = QtWidgets.QWidget()
-window.setWindowTitle("PyQt WAV Player")
+window.setWindowTitle("pyminilab")
 window.resize(400, 300)
 
 # 创建一个菜单栏对象
@@ -104,12 +154,24 @@ button.clicked.connect(play_audio)
 shortcut = QtWidgets.QShortcut(QtGui.QKeySequence(QtCore.Qt.Key_Space), window)
 shortcut.activated.connect(play_audio)
 
-# 创建一个文本框对象，用于显示文本文件
+# 创建一个文本框对象，用于显示和编辑文本文件
 textbox = QtWidgets.QTextEdit(window)
 textbox.move(0, 200)
 textbox.resize(400, 100)
-# 设置文本框为只读模式
-textbox.setReadOnly(True)
+# 重写文本框的键盘事件处理函数，用于处理上下键事件
+textbox.keyPressEvent = handle_key
+
+# 创建一个按钮对象，用于保存文本文件
+save_button = QtWidgets.QPushButton("保存", window)
+save_button.move(300, 100)
+save_button.clicked.connect(save_text)
+
+# 创建一个标签对象，用于显示保存状态
+save_label = QtWidgets.QLabel(window)
+save_label.move(350, 100)
+
+# 初始化当前编辑过的文件路径为空字符串
+current_file = ""
 
 # 显示窗口
 window.show()
