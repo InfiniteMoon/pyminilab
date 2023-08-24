@@ -2,6 +2,7 @@
 import os
 import sys
 from PyQt5 import QtCore, QtGui, QtWidgets, QtMultimedia
+from PyQt5.QtWidgets import QApplication, QWidget, QMenu, QAction, QToolBar, QLabel
 
 # 定义一个播放音频的函数
 def play_audio():
@@ -130,16 +131,21 @@ window = QtWidgets.QWidget()
 window.setWindowTitle("pyminilab")
 window.resize(400, 300)
 
-# 创建一个菜单栏对象
+# 创建一个创建一个按钮对象
 menubar = QtWidgets.QMenuBar(window)
 # 创建一个菜单项对象，用于选择文件夹
 menu = menubar.addMenu("文件")
 action = menu.addAction("选择文件夹")
 action.triggered.connect(select_folder)
 
+# 创建一个创建一个按钮对象，用于选择文件夹
+button_open = QtWidgets.QPushButton("打开", window)
+button_open.move(300, 50)
+button_open.clicked.connect(select_folder)
+
 # 创建一个列表框对象，用于显示wav文件
 listbox = QtWidgets.QListWidget(window)
-listbox.move(0, menubar.height())
+listbox.move(0, 10)
 # 绑定列表框的点击事件和显示文本函数
 listbox.itemClicked.connect(show_text)
 # 绑定列表框的上下键事件和显示文本函数
@@ -156,26 +162,28 @@ shortcut.activated.connect(play_audio)
 
 # 创建一个文本框对象，用于显示和编辑文本文件
 textbox = QtWidgets.QTextEdit(window)
-textbox.move(0, 260)
+textbox.move(0, 250)
 textbox.resize(400, 100)
 # 重写文本框的键盘事件处理函数，用于处理上下键事件
 textbox.keyPressEvent = handle_key
+textbox.setReadOnly(False)
 
-# 创建一个文本框对象，用于显示和编辑文本文件
+# 创建一个文本框对象，用于显示和编辑文本文件(日文或者中文)
 textbox2 = QtWidgets.QTextEdit(window)
-textbox2.move(0, 220)
-textbox2.resize(400, 40)
+textbox2.move(0, 205)
+textbox2.resize(400, 20)
 # 重写文本框的键盘事件处理函数，用于处理上下键事件
 textbox2.keyPressEvent = handle_key
-
+textbox2.setReadOnly(False)
 # 创建一个按钮对象，用于保存文本文件
 save_button = QtWidgets.QPushButton("保存", window)
 save_button.move(300, 100)
 save_button.clicked.connect(save_text)
 
-# 创建一个标签对象，用于显示保存状态
+# 创建一个标签对象，用于显示语言
 save_label = QtWidgets.QLabel(window)
-save_label.move(350, 100)
+save_label.move(328, 180)
+save_label.setText("zh")
 
 # 初始化当前编辑过的文件路径为空字符串
 current_file = ""
@@ -185,6 +193,7 @@ window.show()
 
 # 首次选择文件夹
 select_folder()
+
 
 # 进入主循环
 sys.exit(app.exec_())
