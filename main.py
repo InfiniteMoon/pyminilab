@@ -4,6 +4,7 @@ import sys
 from PyQt5 import QtCore, QtGui, QtWidgets, QtMultimedia
 from PyQt5.QtWidgets import QApplication, QWidget, QMenu, QAction, QToolBar, QLabel
 import pypinyin
+import pykakasi
 
 # 定义一个播放音频的函数
 def play_audio():
@@ -165,16 +166,17 @@ shortcut.activated.connect(play_audio)
 textbox = QtWidgets.QTextEdit(window)
 textbox.move(0, 250)
 textbox.resize(400, 100)
+textbox.setObjectName('textbox')
 # 重写文本框的键盘事件处理函数，用于处理上下键事件
 textbox.keyPressEvent = handle_key
-#textbox.setReadOnly(False)
 
 # 创建一个文本框对象，用于显示和编辑文本文件(日文或者中文)
 textbox2 = QtWidgets.QTextEdit(window)
 textbox2.move(0, 205)
 textbox2.resize(400, 20)
+
 # 重写文本框的键盘事件处理函数，用于处理上下键事件
-textbox2.keyPressEvent = handle_key
+#textbox2.keyPressEvent = handle_key
 # 创建一个按钮对象，用于保存文本文件
 save_button = QtWidgets.QPushButton("保存", window)
 save_button.move(300, 100)
@@ -234,9 +236,32 @@ def convert_to_pinyin():
     # 将拼音字符串填入到textbox中
     textbox.setText(pinyin)
 
+# 定义一个函数，接受一个文本框对象作为参数
+def convert_to_romaji():
+    # 从文本框中获取日语字符串
+    japanese = textbox2.toPlainText()
+    # 去除掉符号，只保留汉字、假名和空格
+    japanese = ''.join([c for c in japanese if c.isalnum() or c.isspace()])
+    # 使用pykakasi库将日语转换为罗马音列表，用空格分隔
+    kakasi = pykakasi.kakasi()
+    kakasi.setMode("H", "a") 
+    kakasi.setMode("K", "a")
+    kakasi.setMode('J', 'a')
+    kakasi.setMode("s", True) # 添加空格
+    converter = kakasi.getConverter()
+    romaji = converter.do(japanese)
+    # 将罗马音字符串填入到textbox1中
+    textbox.setText(romaji)
+
+def trance():
+    if combo.currentText() == 'zh':
+        convert_to_pinyin()
+    else:
+        convert_to_romaji()
+
 trance_button = QtWidgets.QPushButton("转换", window)
 trance_button.move(80, 222)
-trance_button.clicked.connect(convert_to_pinyin)
+trance_button.clicked.connect(trance)
 
 # 显示窗口
 window.show()
