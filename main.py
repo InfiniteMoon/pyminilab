@@ -45,14 +45,13 @@ def show_text():
             text = f.read()
             # 如果文本为空，显示提示信息
             if not text:
-                text = "无法显示该文件"
+                text = ""
             # 设置文本框的内容为文本
             textbox.setText(text)
-    # 如果出现异常，尝试新建一个同名的空白文件，并显示提示信息
+    # 如果出现异常，尝试新建一个同名的空白文件，并清空文本框
     except:
         with open(filepath, "w") as f:
-            text = "新建了一个空白文件"
-            textbox.setText(text)
+            textbox.clear()
 
 # 定义一个选择文件夹的函数
 def select_folder():
@@ -93,6 +92,8 @@ listbox = QtWidgets.QListWidget(window)
 listbox.move(0, menubar.height())
 # 绑定列表框的点击事件和显示文本函数
 listbox.itemClicked.connect(show_text)
+# 绑定列表框的上下键事件和显示文本函数
+listbox.currentItemChanged.connect(show_text)
 
 # 创建一个按钮对象，用于播放音频
 button = QtWidgets.QPushButton("播放", window)
@@ -113,7 +114,6 @@ textbox.setReadOnly(True)
 # 显示窗口
 window.show()
 
-# 弹出一个对话框，让用户初始选择一个文件夹
 select_folder()
 
 # 进入主循环
