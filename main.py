@@ -3,6 +3,7 @@ import os
 import sys
 from PyQt5 import QtCore, QtGui, QtWidgets, QtMultimedia
 from PyQt5.QtWidgets import QApplication, QWidget, QMenu, QAction, QToolBar, QLabel
+import pypinyin
 
 # 定义一个播放音频的函数
 def play_audio():
@@ -166,7 +167,7 @@ textbox.move(0, 250)
 textbox.resize(400, 100)
 # 重写文本框的键盘事件处理函数，用于处理上下键事件
 textbox.keyPressEvent = handle_key
-textbox.setReadOnly(False)
+#textbox.setReadOnly(False)
 
 # 创建一个文本框对象，用于显示和编辑文本文件(日文或者中文)
 textbox2 = QtWidgets.QTextEdit(window)
@@ -174,19 +175,68 @@ textbox2.move(0, 205)
 textbox2.resize(400, 20)
 # 重写文本框的键盘事件处理函数，用于处理上下键事件
 textbox2.keyPressEvent = handle_key
-textbox2.setReadOnly(False)
 # 创建一个按钮对象，用于保存文本文件
 save_button = QtWidgets.QPushButton("保存", window)
 save_button.move(300, 100)
 save_button.clicked.connect(save_text)
 
+
 # 创建一个标签对象，用于显示语言
-save_label = QtWidgets.QLabel(window)
-save_label.move(328, 180)
-save_label.setText("zh")
+#save_label = QtWidgets.QLabel(window)
+#save_label.move(328, 180)
+#save_label.setText("zh")
 
 # 初始化当前编辑过的文件路径为空字符串
 current_file = ""
+
+# 选择语言
+combo = QtWidgets.QComboBox(window)
+combo.addItem('zh')
+combo.addItem('jp')
+combo.move(10, 222)
+
+def on_change():
+    # 获取当前选择的文本
+    text = combo.currentText()
+    # 在控制台打印出结果
+    print('你选择了' + text)
+    language = text
+    print(language)
+
+combo.currentIndexChanged.connect(on_change)
+
+# 获取用户选择的项目的索引
+index = combo.currentIndex()
+    # 根据索引执行不同的操作
+
+
+#def planguage():
+#   if index == 0:
+#       language = 'zh'
+#      print(language)
+# else:
+#    language = 'jp'
+#   print(language)
+
+#save_label = QtWidgets.QLabel(window)
+#save_label.move(328, 180)
+#save_label.setText(combo.currentText())
+# 创建一个按钮对象，用于转换标记
+
+def convert_to_pinyin():
+    print(textbox2)
+    # 从文本框中获取中文字符串
+    chinese = textbox2.toPlainText()
+    # 去除掉符号，只保留汉字和空格
+    chinese = ''.join([c for c in chinese if c.isalnum() or c.isspace()])
+    # 使用pypinyin库将中文转换为拼音列表，不带声调，用空格分隔
+    pinyin = ' '.join([p[0] for p in pypinyin.pinyin(chinese, style=pypinyin.NORMAL)])
+    # 将拼音字符串填入到textbox中
+    textbox.setText(pinyin)
+
+trance_button = QtWidgets.QPushButton("转换", window)
+trance_button.move(80, 222)
+trance_button.clicked.connect(convert_to_pinyin)
 
 # 显示窗口
 window.show()
@@ -194,6 +244,8 @@ window.show()
 # 首次选择文件夹
 select_folder()
 
+#初始化语言
+on_change()
 
 # 进入主循环
 sys.exit(app.exec_())
