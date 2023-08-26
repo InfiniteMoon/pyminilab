@@ -14,3 +14,6 @@ build/.DS_Store
 .DS_Store
 dist/pyminilab
 *.spec
+dist/pyminilabV2
+build/pyminilabV2/warn-pyminilabV2.txt
+build/pyminilabV2/xref-pyminilabV2.html
