@@ -1,0 +1,8 @@
+Deprecated==1.2.14
+jaconv==0.3.4
+pykakasi==2.2.1
+pypinyin==0.49.0
+PyQt5==5.15.9
+PyQt5-Qt5==5.15.2
+PyQt5-sip==12.12.2
+wrapt==1.15.0
