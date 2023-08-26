@@ -1,3 +1,16 @@
 
 *.lab
 *.wav
+build/pyminilab/warn-pyminilab.txt
+build/pyminilab/xref-pyminilab.html
+*.toc
+*.pyc
+*.zip
+build/.DS_Store
+.DS_Store
+.DS_Store
+*.pkg
+*.pyz
+.DS_Store
+dist/pyminilab
+*.spec
