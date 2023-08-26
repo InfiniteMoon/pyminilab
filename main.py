@@ -1,3 +1,11 @@
+# -*- coding: utf-8 -*-
+import base64
+import hashlib
+import hmac
+import json
+import time
+import requests
+import urllib
 # 导入必要的模块
 import os
 import sys
@@ -6,8 +14,14 @@ from PyQt5.QtWidgets import QApplication, QWidget, QMenu, QAction, QToolBar, QLa
 import pypinyin
 import pykakasi
 
-# 定义一个播放音频的函数
-def play_audio():
+
+lfasr_host = 'https://raasr.xfyun.cn/v2/api'
+# 请求的接口名
+api_upload = '/upload'
+api_get_result = '/getResult'
+
+#定义一个获取文件名的函数
+def getfilepath():
     # 获取列表框中选中的文件名
     item = listbox.currentItem()
     # 如果没有选中任何文件，弹出提示框并返回
@@ -18,6 +32,11 @@ def play_audio():
     filename = item.text()
     # 拼接完整的文件路径
     filepath = os.path.join(folder, filename)
+    return filepath
+
+# 定义一个播放音频的函数
+def play_audio():
+    filepath = getfilepath()
     # 尝试加载和播放音频文件
     try:
         # 设置音频源为本地文件的url
@@ -77,9 +96,6 @@ def save_text():
         try:
             with open(current_file, "w") as f:
                 f.write(text)
-                # 在按钮旁边显示“已保存”的提示
-                # save_label.setText("saved")
-                # 效果不好
         # 如果出现异常，弹出错误提示框
         except:
             QtWidgets.QMessageBox.critical(window, "错误", "无法保存该文件")
@@ -142,7 +158,7 @@ action.triggered.connect(select_folder)
 
 # 创建一个创建一个按钮对象，用于选择文件夹
 button_open = QtWidgets.QPushButton("打开", window)
-button_open.move(300, 50)
+button_open.move(300, 110)
 button_open.clicked.connect(select_folder)
 
 # 创建一个列表框对象，用于显示wav文件
@@ -155,7 +171,7 @@ listbox.currentItemChanged.connect(show_text)
 
 # 创建一个按钮对象，用于播放音频
 button = QtWidgets.QPushButton("播放", window)
-button.move(300, 150)
+button.move(300, 170)
 button.clicked.connect(play_audio)
 
 # 创建一个快捷方式对象，用于绑定空格键和播放音频函数
@@ -175,27 +191,43 @@ textbox2 = QtWidgets.QTextEdit(window)
 textbox2.move(0, 205)
 textbox2.resize(400, 20)
 
+# 创建一个文本框对象，appid
+textboxapp = QtWidgets.QTextEdit(window)
+textboxapp.move(270, 40)
+textboxapp.resize(400, 20)
+
+# 创建一个文本框对象，key
+textboxkey = QtWidgets.QTextEdit(window)
+textboxkey.move(270, 80)
+textboxkey.resize(400, 20)
+
+# 创建一个标签对象，用于提示appid
+app_label = QtWidgets.QLabel(window)
+app_label.move(270, 20)
+app_label.setText("appid:")
+
+# 创建一个标签对象，用于提示appid
+app_label = QtWidgets.QLabel(window)
+app_label.move(270, 60)
+app_label.setText("secret_key:")
+
+
 # 重写文本框的键盘事件处理函数，用于处理上下键事件
 #textbox2.keyPressEvent = handle_key
 # 创建一个按钮对象，用于保存文本文件
 save_button = QtWidgets.QPushButton("保存", window)
-save_button.move(300, 100)
+save_button.move(300, 140)
 save_button.clicked.connect(save_text)
-
-
-# 创建一个标签对象，用于显示语言
-#save_label = QtWidgets.QLabel(window)
-#save_label.move(328, 180)
-#save_label.setText("zh")
 
 # 初始化当前编辑过的文件路径为空字符串
 current_file = ""
 
 # 选择语言
 combo = QtWidgets.QComboBox(window)
-combo.addItem('zh')
-combo.addItem('jp')
+combo.addItem('cn')
+combo.addItem('ja')
 combo.move(10, 222)
+
 
 def on_change():
     # 获取当前选择的文本
@@ -253,15 +285,162 @@ def convert_to_romaji():
     # 将罗马音字符串填入到textbox1中
     textbox.setText(romaji)
 
+
+
 def trance():
-    if combo.currentText() == 'zh':
+    if combo.currentText() == 'cn':
         convert_to_pinyin()
     else:
         convert_to_romaji()
 
+
+# 创建一个用于转换文本到拼音罗马字的按钮
 trance_button = QtWidgets.QPushButton("转换", window)
 trance_button.move(80, 222)
 trance_button.clicked.connect(trance)
+
+
+
+
+
+class RequestApi(object):
+    def __init__(self, appid, secret_key, upload_file_path, language):
+        self.appid = appid
+        self.secret_key = secret_key
+        self.upload_file_path = upload_file_path
+        self.ts = str(int(time.time()))
+        self.signa = self.get_signa()
+        self.language = language
+
+    def get_signa(self):
+        appid = self.appid
+        secret_key = self.secret_key
+        m2 = hashlib.md5()
+        m2.update((appid + self.ts).encode('utf-8'))
+        md5 = m2.hexdigest()
+        md5 = bytes(md5, encoding='utf-8')
+        # 以secret_key为key, 上面的md5为msg， 使用hashlib.sha1加密结果为signa
+        signa = hmac.new(secret_key.encode('utf-8'), md5, hashlib.sha1).digest()
+        signa = base64.b64encode(signa)
+        signa = str(signa, 'utf-8')
+        return signa
+
+
+    def upload(self):
+        print("上传部分：")
+        upload_file_path = self.upload_file_path
+        language = self.language
+        file_len = os.path.getsize(upload_file_path)
+        file_name = os.path.basename(upload_file_path)
+
+        param_dict = {}
+        param_dict['appId'] = self.appid
+        param_dict['signa'] = self.signa
+        param_dict['ts'] = self.ts
+        param_dict["fileSize"] = file_len
+        param_dict["fileName"] = file_name
+        param_dict["duration"] = "200"
+        param_dict["language"] = str(language)
+        print("upload参数：", param_dict)
+        data = open(upload_file_path, 'rb').read(file_len)
+
+        response = requests.post(url =lfasr_host + api_upload+"?"+urllib.parse.urlencode(param_dict),
+                                headers = {"Content-type":"application/json"},data=data)
+        print("upload_url:",response.request.url)
+        result = json.loads(response.text)
+        print("upload resp:", result)
+        return result
+
+
+    def get_result(self):
+        uploadresp = self.upload()
+        orderId = uploadresp['content']['orderId']
+        param_dict = {}
+        param_dict['appId'] = self.appid
+        param_dict['signa'] = self.signa
+        param_dict['ts'] = self.ts
+        param_dict['orderId'] = orderId
+        param_dict['resultType'] = "transfer,predict"
+        print("")
+        print("查询部分：")
+        print("get result参数：", param_dict)
+        status = 3
+        # 建议使用回调的方式查询结果，查询接口有请求频率限制
+        while status == 3:
+            response = requests.post(url=lfasr_host + api_get_result + "?" + urllib.parse.urlencode(param_dict),
+                                     headers={"Content-type": "application/json"})
+            print("get_result_url:",response.request.url)
+            result = json.loads(response.text)
+            # global txt
+            # txt = result
+            print(result)
+            status = result['content']['orderInfo']['status']
+            print("status=",status)
+            if status == 4:
+                break
+            time.sleep(5)
+        print("get_result resp:",result)
+        print("test:",result['content']['orderResult'])
+        # 将json字符串转换为Python字典
+        json_dict = json.loads(result['content']['orderResult'])
+
+        # 从字典中获取lattice列表
+        lattice_list = json_dict["lattice"]
+
+        # 从列表中获取第一个元素，也是一个字典
+        lattice_dict = lattice_list[0]
+
+        # 从字典中获取json_1best的值，也是一个json字符串
+        json_1best_str = lattice_dict["json_1best"]
+
+        # 将json_1best字符串转换为Python字典
+        json_1best_dict = json.loads(json_1best_str)
+
+        # 从字典中获取st的值，也是一个字典
+        st_dict = json_1best_dict["st"]
+
+        # 从字典中获取rt的值，也是一个列表
+        rt_list = st_dict["rt"]
+
+        # 从列表中获取第一个元素，也是一个字典
+        rt_dict = rt_list[0]
+
+        # 从字典中获取ws的值，也是一个列表
+        ws_list = rt_dict["ws"]
+
+        # 定义一个空字符串，用于存放汉字内容
+        text = ""
+
+        # 遍历ws列表中的每个元素，也是一个字典
+        for ws_dict in ws_list:
+            # 从字典中获取cw的值，也是一个列表
+            cw_list = ws_dict["cw"]
+            # 从列表中获取第一个元素，也是一个字典
+            cw_dict = cw_list[0]
+            # 从字典中获取w的值，也是一个字符串
+            w_str = cw_dict["w"]
+            # 将w的值拼接到text字符串中
+            text += w_str
+
+        # 打印text字符串，即json_1best里面的汉字内容
+        print(text)
+        # print("get_result need:",result['orderResult'])
+        return text
+
+# 定义一个函数，进行语音识别
+def analyse():
+    # 输入讯飞开放平台的appid，secret_key和待转写的文件路径
+    api = RequestApi(appid=textboxapp.toPlainText(),
+                     secret_key=textboxkey.toPlainText(),
+                     upload_file_path=getfilepath(),
+                     language=combo.currentText())
+
+    textbox2.setText(api.get_result())
+
+# 创建一个用于语音识别的按钮
+trance_button = QtWidgets.QPushButton("识别", window)
+trance_button.move(160, 222)
+trance_button.clicked.connect(analyse)
 
 # 显示窗口
 window.show()
