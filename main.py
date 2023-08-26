@@ -241,21 +241,6 @@ combo.currentIndexChanged.connect(on_change)
 
 # 获取用户选择的项目的索引
 index = combo.currentIndex()
-    # 根据索引执行不同的操作
-
-
-#def planguage():
-#   if index == 0:
-#       language = 'zh'
-#      print(language)
-# else:
-#    language = 'jp'
-#   print(language)
-
-#save_label = QtWidgets.QLabel(window)
-#save_label.move(328, 180)
-#save_label.setText(combo.currentText())
-# 创建一个按钮对象，用于转换标记
 
 def convert_to_pinyin():
     print(textbox2)
