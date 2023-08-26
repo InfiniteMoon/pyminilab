@@ -13,6 +13,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets, QtMultimedia
 from PyQt5.QtWidgets import QApplication, QWidget, QMenu, QAction, QToolBar, QLabel
 import pypinyin
 import pykakasi
+import romkan
 
 
 lfasr_host = 'https://raasr.xfyun.cn/v2/api'
@@ -261,12 +262,14 @@ def convert_to_romaji():
     japanese = ''.join([c for c in japanese if c.isalnum() or c.isspace()])
     # 使用pykakasi库将日语转换为罗马音列表，用空格分隔
     kakasi = pykakasi.kakasi()
-    kakasi.setMode("H", "a") 
-    kakasi.setMode("K", "a")
-    kakasi.setMode('J', 'a')
-    kakasi.setMode("s", True) # 添加空格
+    #kakasi.setMode("H", "a") 
+    kakasi.setMode("K", "H")
+    kakasi.setMode('J', 'H')
+    #kakasi.setMode("s", True) # 添加空格
     converter = kakasi.getConverter()
-    romaji = converter.do(japanese)
+    hiragana = converter.do(japanese)
+    hiragana_split = " ".join(hiragana)
+    romaji = romkan.to_roma(hiragana_split)
     # 将罗马音字符串填入到textbox1中
     textbox.setText(romaji)
 
